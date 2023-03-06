@@ -1,0 +1,397 @@
+```
+编译目标文件(可重定位)
+gcc -c a.c
+gcc -c c.c
+gcc -c b.c
+```
+```
+tangke@tangke:~/build_example/ex3$ readelf -s a.o
+
+Symbol table '.symtab' contains 9 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS a.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     8: 0000000000000000     4 OBJECT  GLOBAL DEFAULT    2 shared
+tangke@tangke:~/build_example/ex3$ readelf -s c.o
+
+Symbol table '.symtab' contains 10 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS c.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    7
+     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     9: 0000000000000000    11 FUNC    GLOBAL DEFAULT    1 call_func
+tangke@tangke:~/build_example/ex3$ readelf -s b.o
+
+Symbol table '.symtab' contains 13 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS b.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    7
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    8
+     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     9: 0000000000000000    35 FUNC    GLOBAL DEFAULT    1 main
+    10: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND shared
+    11: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND _GLOBAL_OFFSET_TABLE_
+    12: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND call_func
+```
+现在call_func和shared都是UND
+
+在这个例子中，尝试静态库的三种方式：
+1. a.c/c.c独立打包成两个静态库，静态链接到b.c (a.a,c.a, 1.out)
+```
+gcc -o 1.out b.o a.a c.a
+```
+```
+tangke@tangke:~/build_example/ex3$ readelf -s a.a
+
+File: a.a(a.o)
+
+Symbol table '.symtab' contains 9 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS a.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     8: 0000000000000000     4 OBJECT  GLOBAL DEFAULT    2 shared
+tangke@tangke:~/build_example/ex3$ readelf -s c.a
+
+File: c.a(c.o)
+
+Symbol table '.symtab' contains 10 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS c.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    7
+     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     9: 0000000000000000    11 FUNC    GLOBAL DEFAULT    1 call_func
+```
+```
+tangke@tangke:~/build_example/ex3$ readelf -s 1.out
+
+Symbol table '.dynsym' contains 6 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_deregisterTMCloneTab
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __libc_start_main@GLIBC_2.2.5 (2)
+     3: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+     4: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_registerTMCloneTable
+     5: 0000000000000000     0 FUNC    WEAK   DEFAULT  UND __cxa_finalize@GLIBC_2.2.5 (2)
+
+Symbol table '.symtab' contains 66 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000318     0 SECTION LOCAL  DEFAULT    1
+     2: 0000000000000338     0 SECTION LOCAL  DEFAULT    2
+     3: 0000000000000358     0 SECTION LOCAL  DEFAULT    3
+     4: 000000000000037c     0 SECTION LOCAL  DEFAULT    4
+     5: 00000000000003a0     0 SECTION LOCAL  DEFAULT    5
+     6: 00000000000003c8     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000458     0 SECTION LOCAL  DEFAULT    7
+     8: 00000000000004d6     0 SECTION LOCAL  DEFAULT    8
+     9: 00000000000004e8     0 SECTION LOCAL  DEFAULT    9
+    10: 0000000000000508     0 SECTION LOCAL  DEFAULT   10
+    11: 0000000000001000     0 SECTION LOCAL  DEFAULT   11
+    12: 0000000000001020     0 SECTION LOCAL  DEFAULT   12
+    13: 0000000000001030     0 SECTION LOCAL  DEFAULT   13
+    14: 0000000000001040     0 SECTION LOCAL  DEFAULT   14
+    15: 00000000000011d8     0 SECTION LOCAL  DEFAULT   15
+    16: 0000000000002000     0 SECTION LOCAL  DEFAULT   16
+    17: 0000000000002004     0 SECTION LOCAL  DEFAULT   17
+    18: 0000000000002048     0 SECTION LOCAL  DEFAULT   18
+    19: 0000000000003df0     0 SECTION LOCAL  DEFAULT   19
+    20: 0000000000003df8     0 SECTION LOCAL  DEFAULT   20
+    21: 0000000000003e00     0 SECTION LOCAL  DEFAULT   21
+    22: 0000000000003fc0     0 SECTION LOCAL  DEFAULT   22
+    23: 0000000000004000     0 SECTION LOCAL  DEFAULT   23
+    24: 0000000000004014     0 SECTION LOCAL  DEFAULT   24
+    25: 0000000000000000     0 SECTION LOCAL  DEFAULT   25
+    26: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+    27: 0000000000001070     0 FUNC    LOCAL  DEFAULT   14 deregister_tm_clones
+    28: 00000000000010a0     0 FUNC    LOCAL  DEFAULT   14 register_tm_clones
+    29: 00000000000010e0     0 FUNC    LOCAL  DEFAULT   14 __do_global_dtors_aux
+    30: 0000000000004014     1 OBJECT  LOCAL  DEFAULT   24 completed.8061
+    31: 0000000000003df8     0 OBJECT  LOCAL  DEFAULT   20 __do_global_dtors_aux_fin
+    32: 0000000000001120     0 FUNC    LOCAL  DEFAULT   14 frame_dummy
+    33: 0000000000003df0     0 OBJECT  LOCAL  DEFAULT   19 __frame_dummy_init_array_
+    34: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS b.c
+    35: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS a.c
+    36: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS c.c
+    37: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+    38: 0000000000002154     0 OBJECT  LOCAL  DEFAULT   18 __FRAME_END__
+    39: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS
+    40: 0000000000003df8     0 NOTYPE  LOCAL  DEFAULT   19 __init_array_end
+    41: 0000000000003e00     0 OBJECT  LOCAL  DEFAULT   21 _DYNAMIC
+    42: 0000000000003df0     0 NOTYPE  LOCAL  DEFAULT   19 __init_array_start
+    43: 0000000000002004     0 NOTYPE  LOCAL  DEFAULT   17 __GNU_EH_FRAME_HDR
+    44: 0000000000003fc0     0 OBJECT  LOCAL  DEFAULT   22 _GLOBAL_OFFSET_TABLE_
+    45: 0000000000001000     0 FUNC    LOCAL  DEFAULT   11 _init
+    46: 00000000000011d0     5 FUNC    GLOBAL DEFAULT   14 __libc_csu_fini
+    47: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_deregisterTMCloneTab
+    48: 0000000000004000     0 NOTYPE  WEAK   DEFAULT   23 data_start
+    49: 0000000000004014     0 NOTYPE  GLOBAL DEFAULT   23 _edata
+    50: 00000000000011d8     0 FUNC    GLOBAL HIDDEN    15 _fini
+    51: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __libc_start_main@@GLIBC_
+    52: 0000000000004000     0 NOTYPE  GLOBAL DEFAULT   23 __data_start
+    53: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+    54: 0000000000004008     0 OBJECT  GLOBAL HIDDEN    23 __dso_handle
+    55: 0000000000002000     4 OBJECT  GLOBAL DEFAULT   16 _IO_stdin_used
+    56: 000000000000114c    11 FUNC    GLOBAL DEFAULT   14 call_func
+    57: 0000000000001160   101 FUNC    GLOBAL DEFAULT   14 __libc_csu_init
+    58: 0000000000004018     0 NOTYPE  GLOBAL DEFAULT   24 _end
+    59: 0000000000001040    47 FUNC    GLOBAL DEFAULT   14 _start
+    60: 0000000000004014     0 NOTYPE  GLOBAL DEFAULT   24 __bss_start
+    61: 0000000000001129    35 FUNC    GLOBAL DEFAULT   14 main
+    62: 0000000000004018     0 OBJECT  GLOBAL HIDDEN    23 __TMC_END__
+    63: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_registerTMCloneTable
+    64: 0000000000000000     0 FUNC    WEAK   DEFAULT  UND __cxa_finalize@@GLIBC_2.2
+    65: 0000000000004010     4 OBJECT  GLOBAL DEFAULT   23 shared
+```
+现在，call_func和shared都已经重定位了
+
+
+2. a.c/c.c打包成一个完整的静态库，静态链接到b.c(comb.a, 2.out)
+```
+ar rcs comb.a a.o c.o
+gcc -o 2.out b.o comb.a
+```
+```
+tangke@tangke:~/build_example/ex3$ readelf -s comb.a
+
+File: comb.a(a.o)
+
+Symbol table '.symtab' contains 9 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS a.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     8: 0000000000000000     4 OBJECT  GLOBAL DEFAULT    2 shared
+
+File: comb.a(c.o)
+
+Symbol table '.symtab' contains 10 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS c.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    7
+     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     9: 0000000000000000    11 FUNC    GLOBAL DEFAULT    1 call_func
+```
+```
+tangke@tangke:~/build_example/ex3$ readelf -s 2.out
+
+Symbol table '.dynsym' contains 6 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_deregisterTMCloneTab
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __libc_start_main@GLIBC_2.2.5 (2)
+     3: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+     4: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_registerTMCloneTable
+     5: 0000000000000000     0 FUNC    WEAK   DEFAULT  UND __cxa_finalize@GLIBC_2.2.5 (2)
+
+Symbol table '.symtab' contains 66 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000318     0 SECTION LOCAL  DEFAULT    1
+     2: 0000000000000338     0 SECTION LOCAL  DEFAULT    2
+     3: 0000000000000358     0 SECTION LOCAL  DEFAULT    3
+     4: 000000000000037c     0 SECTION LOCAL  DEFAULT    4
+     5: 00000000000003a0     0 SECTION LOCAL  DEFAULT    5
+     6: 00000000000003c8     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000458     0 SECTION LOCAL  DEFAULT    7
+     8: 00000000000004d6     0 SECTION LOCAL  DEFAULT    8
+     9: 00000000000004e8     0 SECTION LOCAL  DEFAULT    9
+    10: 0000000000000508     0 SECTION LOCAL  DEFAULT   10
+    11: 0000000000001000     0 SECTION LOCAL  DEFAULT   11
+    12: 0000000000001020     0 SECTION LOCAL  DEFAULT   12
+    13: 0000000000001030     0 SECTION LOCAL  DEFAULT   13
+    14: 0000000000001040     0 SECTION LOCAL  DEFAULT   14
+    15: 00000000000011d8     0 SECTION LOCAL  DEFAULT   15
+    16: 0000000000002000     0 SECTION LOCAL  DEFAULT   16
+    17: 0000000000002004     0 SECTION LOCAL  DEFAULT   17
+    18: 0000000000002048     0 SECTION LOCAL  DEFAULT   18
+    19: 0000000000003df0     0 SECTION LOCAL  DEFAULT   19
+    20: 0000000000003df8     0 SECTION LOCAL  DEFAULT   20
+    21: 0000000000003e00     0 SECTION LOCAL  DEFAULT   21
+    22: 0000000000003fc0     0 SECTION LOCAL  DEFAULT   22
+    23: 0000000000004000     0 SECTION LOCAL  DEFAULT   23
+    24: 0000000000004014     0 SECTION LOCAL  DEFAULT   24
+    25: 0000000000000000     0 SECTION LOCAL  DEFAULT   25
+    26: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+    27: 0000000000001070     0 FUNC    LOCAL  DEFAULT   14 deregister_tm_clones
+    28: 00000000000010a0     0 FUNC    LOCAL  DEFAULT   14 register_tm_clones
+    29: 00000000000010e0     0 FUNC    LOCAL  DEFAULT   14 __do_global_dtors_aux
+    30: 0000000000004014     1 OBJECT  LOCAL  DEFAULT   24 completed.8061
+    31: 0000000000003df8     0 OBJECT  LOCAL  DEFAULT   20 __do_global_dtors_aux_fin
+    32: 0000000000001120     0 FUNC    LOCAL  DEFAULT   14 frame_dummy
+    33: 0000000000003df0     0 OBJECT  LOCAL  DEFAULT   19 __frame_dummy_init_array_
+    34: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS b.c
+    35: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS a.c
+    36: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS c.c
+    37: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+    38: 0000000000002154     0 OBJECT  LOCAL  DEFAULT   18 __FRAME_END__
+    39: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS
+    40: 0000000000003df8     0 NOTYPE  LOCAL  DEFAULT   19 __init_array_end
+    41: 0000000000003e00     0 OBJECT  LOCAL  DEFAULT   21 _DYNAMIC
+    42: 0000000000003df0     0 NOTYPE  LOCAL  DEFAULT   19 __init_array_start
+    43: 0000000000002004     0 NOTYPE  LOCAL  DEFAULT   17 __GNU_EH_FRAME_HDR
+    44: 0000000000003fc0     0 OBJECT  LOCAL  DEFAULT   22 _GLOBAL_OFFSET_TABLE_
+    45: 0000000000001000     0 FUNC    LOCAL  DEFAULT   11 _init
+    46: 00000000000011d0     5 FUNC    GLOBAL DEFAULT   14 __libc_csu_fini
+    47: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_deregisterTMCloneTab
+    48: 0000000000004000     0 NOTYPE  WEAK   DEFAULT   23 data_start
+    49: 0000000000004014     0 NOTYPE  GLOBAL DEFAULT   23 _edata
+    50: 00000000000011d8     0 FUNC    GLOBAL HIDDEN    15 _fini
+    51: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __libc_start_main@@GLIBC_
+    52: 0000000000004000     0 NOTYPE  GLOBAL DEFAULT   23 __data_start
+    53: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+    54: 0000000000004008     0 OBJECT  GLOBAL HIDDEN    23 __dso_handle
+    55: 0000000000002000     4 OBJECT  GLOBAL DEFAULT   16 _IO_stdin_used
+    56: 000000000000114c    11 FUNC    GLOBAL DEFAULT   14 call_func
+    57: 0000000000001160   101 FUNC    GLOBAL DEFAULT   14 __libc_csu_init
+    58: 0000000000004018     0 NOTYPE  GLOBAL DEFAULT   24 _end
+    59: 0000000000001040    47 FUNC    GLOBAL DEFAULT   14 _start
+    60: 0000000000004014     0 NOTYPE  GLOBAL DEFAULT   24 __bss_start
+    61: 0000000000001129    35 FUNC    GLOBAL DEFAULT   14 main
+    62: 0000000000004018     0 OBJECT  GLOBAL HIDDEN    23 __TMC_END__
+    63: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_registerTMCloneTable
+    64: 0000000000000000     0 FUNC    WEAK   DEFAULT  UND __cxa_finalize@@GLIBC_2.2
+    65: 0000000000004010     4 OBJECT  GLOBAL DEFAULT   23 shared
+```
+同样，shared和call_func都重定位了，看起来并无差别。
+
+3. a.c/c.c虽然打包成两个独立的静态库，但再把c.c的静态库链接到a.c的静态库中，最后静态链接到b.c(a.a,c.a, indraw.a, 3.out)
+
+>特别注意，这个操作本质上只能先将a.a和c.a中的.o都解压出来，然后再用ar合并到一个新的静态库indraw.a。并且readelf这里还存在一个elf头错误，也就是说elf头应该是静态库的elf magic number，但这里使用ar写入的并不是。但是！objdump可以识别。具体原因未知。不过，使用gcc，仍然可以继续完成链接
+```
+rm a.o
+rm c.o 
+ar x a.a
+ar x c.a
+ar rcs indraw.a a.o c.o
+gcc -o 3.out b.o indraw.a
+```
+```
+tangke@tangke:~/build_example/ex3$ readelf -s indraw.a
+
+File: indraw.a(a.a)
+readelf: Error: Not an ELF file - it has the wrong magic bytes at the start
+
+File: indraw.a(c.a)
+readelf: Error: Not an ELF file - it has the wrong magic bytes at the start
+
+File: indraw.a(a.o)
+
+Symbol table '.symtab' contains 9 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS a.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     8: 0000000000000000     4 OBJECT  GLOBAL DEFAULT    2 shared
+
+File: indraw.a(c.o)
+
+Symbol table '.symtab' contains 10 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS c.c
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    2
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    7
+     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    4
+     9: 0000000000000000    11 FUNC    GLOBAL DEFAULT    1 call_func
+```
+
+3.1
+使用ar的crsT参数来完成，本质也是拆解每个.a中的.o，再打包
+```
+rm a.a
+rm c.a
+ar rcs a.a a.o
+ar rcs c.a c.o
+rm indraw.a
+ar rcsT indraw.a a.a c.a
+gcc -o 3.out b.o indraw.a
+```
+```
+tangke@tangke:~/build_example/ex3$ objdump -t indraw.a
+In archive indraw.a:
+
+a.o:     file format elf64-x86-64
+
+SYMBOL TABLE:
+0000000000000000 l    df *ABS*  0000000000000000 a.c
+0000000000000000 l    d  .text  0000000000000000 .text
+0000000000000000 l    d  .data  0000000000000000 .data
+0000000000000000 l    d  .bss   0000000000000000 .bss
+0000000000000000 l    d  .note.GNU-stack        0000000000000000 .note.GNU-stack
+0000000000000000 l    d  .note.gnu.property     0000000000000000 .note.gnu.property
+0000000000000000 l    d  .comment       0000000000000000 .comment
+0000000000000000 g     O .data  0000000000000004 shared
+
+
+
+c.o:     file format elf64-x86-64
+
+SYMBOL TABLE:
+0000000000000000 l    df *ABS*  0000000000000000 c.c
+0000000000000000 l    d  .text  0000000000000000 .text
+0000000000000000 l    d  .data  0000000000000000 .data
+0000000000000000 l    d  .bss   0000000000000000 .bss
+0000000000000000 l    d  .note.GNU-stack        0000000000000000 .note.GNU-stack
+0000000000000000 l    d  .note.gnu.property     0000000000000000 .note.gnu.property
+0000000000000000 l    d  .eh_frame      0000000000000000 .eh_frame
+0000000000000000 l    d  .comment       0000000000000000 .comment
+0000000000000000 g     F .text  000000000000000b call_func
+
+
+tangke@tangke:~/build_example/ex3$ readelf -s indraw.a
+
+File: indraw.a[a.a(a.o)]
+readelf: Error: Reading 640 bytes extends past end of file for section headers
+
+File: indraw.a[c.a(c.o)]
+readelf: Error: Reading 768 bytes extends past end of file for section headers
+```
